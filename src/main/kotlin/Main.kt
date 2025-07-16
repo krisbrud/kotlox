@@ -1,9 +1,13 @@
-
 class Lox {
-    fun runFile(file: String) { TODO("runFile not implemented!")}
-    fun runPrompt() { TODO("runPrompt not implemented!")}
+    fun runFile(file: String) {
+        TODO("runFile not implemented!")
+    }
 
-    fun main(args: Array<String>)  {
+    fun runPrompt() {
+        TODO("runPrompt not implemented!")
+    }
+
+    fun main(args: Array<String>) {
         if (args.size > 1) {
             println("Usage: kotlox [script]")
             System.exit(64)
