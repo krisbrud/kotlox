@@ -1,6 +1,16 @@
+import java.io.File
+import java.nio.charset.Charset
+import java.nio.file.Files
+import java.nio.file.Paths
+
 class Lox {
-    fun runFile(file: String) {
-        TODO("runFile not implemented!")
+    fun run(source: String) {
+        TODO("run not implemented")
+    }
+
+    fun runFile(path: String) {
+        val source = File(path).readText(charset = Charset.defaultCharset())
+        run(source)
     }
 
     fun runPrompt() {
