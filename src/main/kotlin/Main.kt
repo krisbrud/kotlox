@@ -55,13 +55,34 @@ enum class TokenType {
     EOF;
 }
 
+
 data class Token(
     val type: TokenType,
     val lexeme: String,
-    val literal: Any,
+    val literal: Any?,
     val line: Int
 ) {
     override fun toString(): String = "$type $lexeme $literal"
+}
+
+data class Scanner(
+    val source: String,
+) {
+    var tokens: MutableList<Token> = mutableListOf()
+    var start: Int = 0
+    var current: Int = 0
+    var line: Int = 1
+
+    fun scanTokens() {
+        while (!isAtEnd()) {
+            start = current
+            scanToken()
+        }
+
+        tokens.add(Token(TokenType.EOF, "", null, line))
+    }
+
+    fun isAtEnd(): Boolean = current >= source.length
 }
 
 class Lox {
