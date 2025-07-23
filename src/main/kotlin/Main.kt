@@ -55,6 +55,24 @@ enum class TokenType {
     EOF;
 }
 
+val KEYWORDS: Map<String, TokenType> = mapOf(
+    "and" to TokenType.AND,
+    "class" to TokenType.CLASS,
+    "else" to TokenType.ELSE,
+    "false" to TokenType.FALSE,
+    "for" to TokenType.FOR,
+    "fun" to TokenType.FUN,
+    "if" to TokenType.IF,
+    "nil" to TokenType.NIL,
+    "or" to TokenType.OR,
+    "print" to TokenType.PRINT,
+    "return" to TokenType.RETURN,
+    "super" to TokenType.SUPER,
+    "this" to TokenType.THIS,
+    "true" to TokenType.TRUE,
+    "var" to TokenType.VAR,
+    "while" to TokenType.WHILE,
+)
 
 data class Token(
     val type: TokenType,
@@ -75,13 +93,14 @@ data class Scanner(
     var current: Int = 0
     var line: Int = 1
 
-    fun scanTokens() {
+    fun scanTokens(): List<Token> {
         while (!isAtEnd()) {
             start = current
             scanToken()
         }
 
         tokens.add(Token(TokenType.EOF, "", null, line))
+        return tokens
     }
 
     fun advance(): Char {
@@ -127,6 +146,44 @@ data class Scanner(
         addToken(TokenType.STRING, value)
     }
 
+    fun number() {
+        while (isDigit(peek())) {
+            advance()
+        }
+
+        if (peek() == '.' && isDigit(peekNext())) {
+            advance()
+
+            while (isDigit(peek())) {
+                advance()
+            }
+        }
+
+        val value = source.substring(start, current).toDoubleOrNull() ?: error("Couldn't parse double")
+        addToken(TokenType.NUMBER, value)
+    }
+
+    fun isAlpha(c: Char): Boolean = (c in 'a'..'z') || (c in 'A'..'Z') || c == '_'
+
+    fun isAlphaNumeric(c: Char): Boolean = isAlpha(c) || isDigit(c)
+
+    fun identifier() {
+        while (isAlphaNumeric(peek())) advance();
+
+        val text = source.substring(start, current)
+        val type = KEYWORDS.get(text) ?: TokenType.IDENTIFIER
+
+        addToken(type);
+    }
+
+    fun peekNext(): Char {
+        if (current + 1 >= source.length) {
+            return NULL_CHAR
+        } else {
+            return source[current + 1]
+        }
+    }
+
     fun scanToken() {
         val c = advance()
 
@@ -170,7 +227,13 @@ data class Scanner(
 
 
             else -> {
-                error("line: $line, unexpected character.") // TODO: Fix this
+                if (isDigit(c)) {
+                    number()
+                } else if (isAlpha(c)) {
+                    identifier()
+                } else {
+                    error("line: $line, unexpected character.") // TODO: Fix this
+                }
             }
         }
     }
