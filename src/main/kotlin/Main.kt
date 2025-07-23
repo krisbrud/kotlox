@@ -65,6 +65,8 @@ data class Token(
     override fun toString(): String = "$type $lexeme $literal"
 }
 
+const val NULL_CHAR: Char = '\u0000'
+
 data class Scanner(
     val source: String,
 ) {
@@ -87,7 +89,7 @@ data class Scanner(
     }
 
     fun addToken(type: TokenType) {
-        addToken()
+        addToken(type, null)
     }
 
     fun addToken(type: TokenType, literal: Any?) {
@@ -100,6 +102,29 @@ data class Scanner(
         if (source[current] != expected) return false
         current++
         return true
+    }
+
+    fun peek(): Char {
+        if (isAtEnd()) return NULL_CHAR
+        return source.get(current)
+    }
+
+    fun string() {
+        while (peek() != '"' && !isAtEnd()) {
+            if (peek() == '\n') line++
+            advance()
+        }
+
+        if (isAtEnd()) {
+            println("ERROR: unterminated string!") // TODO: Fix this
+            return
+        }
+
+        // Closing "
+        advance()
+
+        val value = source.substring(start + 1, current - 1)
+        addToken(TokenType.STRING, value)
     }
 
     fun scanToken() {
@@ -122,14 +147,37 @@ data class Scanner(
             '=' -> addToken(if (match('=')) TokenType.EQUAL_EQUAL else TokenType.EQUAL)
             '<' -> addToken(if (match('=')) TokenType.LESS_EQUAL else TokenType.LESS)
             '>' -> addToken(if (match('=')) TokenType.GREATER_EQUAL else TokenType.GREATER)
+            '/' -> {
+                if (match('/')) {
+                    // comment until the end of the line
+                    while (peek() != '\n' && !isAtEnd()) advance()
+                } else {
+                    addToken(TokenType.SLASH)
+                }
+            }
+
+            ' ', '\r', '\t' -> {
+                // Do nothing
+            }
+
+            '\n' -> {
+                line++
+            }
+
+            '"' -> {
+                string()
+            }
+
 
             else -> {
-                error("line: $line, unexpected character.")
+                error("line: $line, unexpected character.") // TODO: Fix this
             }
         }
     }
 
     fun isAtEnd(): Boolean = current >= source.length
+
+    fun isDigit(c: Char): Boolean = c in '0'..'9'
 }
 
 class Lox {
