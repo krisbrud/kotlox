@@ -2,8 +2,6 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 import java.nio.charset.Charset
-import java.nio.file.Files
-import java.nio.file.Paths
 
 
 val KEYWORDS: Map<String, TokenType> = mapOf(
@@ -38,6 +36,7 @@ const val NULL_CHAR: Char = '\u0000'
 
 data class Scanner(
     val source: String,
+    val errorFunc: (Int, String) -> Unit,
 ) {
     var tokens: MutableList<Token> = mutableListOf()
     var start: Int = 0
@@ -55,7 +54,7 @@ data class Scanner(
     }
 
     fun advance(): Char {
-        return source.get(current++)
+        return source[current++]
     }
 
     fun addToken(type: TokenType) {
@@ -86,7 +85,7 @@ data class Scanner(
         }
 
         if (isAtEnd()) {
-            println("ERROR: unterminated string!") // TODO: Fix this
+            errorFunc(line, "unterminated string")
             return
         }
 
@@ -110,7 +109,7 @@ data class Scanner(
             }
         }
 
-        val value = source.substring(start, current).toDoubleOrNull() ?: error("Couldn't parse double")
+        val value = source.substring(start, current).toDoubleOrNull() ?: errorFunc(line, "Couldn't parse double")
         addToken(TokenType.NUMBER, value)
     }
 
@@ -183,7 +182,7 @@ data class Scanner(
                 } else if (isAlpha(c)) {
                     identifier()
                 } else {
-                    error("line: $line, unexpected character.") // TODO: Fix this
+                    errorFunc(line, "unexpected character '$c'")
                 }
             }
         }
@@ -198,7 +197,10 @@ class Lox {
     var hadError = false
 
     fun run(source: String) {
-        val scanner = Scanner(source)
+        val scanner = Scanner(
+            source,
+            { line: Int, msg: String -> error(line, msg) }
+        )
         val tokens: List<Token> = scanner.scanTokens()
 
         // Just print the tokens for now
