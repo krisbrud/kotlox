@@ -252,7 +252,7 @@ class Lox {
 
         // Just print the tokens for now
         for (token in tokens) {
-            print(token)
+            println(token)
         }
     }
 
@@ -273,6 +273,7 @@ class Lox {
     }
 
     fun runPrompt() {
+        println("In runPrompt()")
         val input = InputStreamReader(System.`in`)
         val reader = BufferedReader(input)
 
@@ -297,9 +298,7 @@ class Lox {
 }
 
 fun main(args: Array<String>) {
-    println("Hello World!")
+    val lox = Lox()
 
-    // Try adding program arguments via Run/Debug configuration.
-    // Learn more about running applications: https://www.jetbrains.com/help/idea/running-applications.html.
-    println("Program arguments: ${args.joinToString()}")
+    lox.main(args)
 }
