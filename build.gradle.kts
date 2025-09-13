@@ -3,7 +3,7 @@ plugins {
     application
 }
 
-group = "org.example"
+group = "no.krisbrud"
 version = "1.0-SNAPSHOT"
 
 repositories {
