@@ -36,7 +36,7 @@ const val NULL_CHAR: Char = '\u0000'
 
 data class Scanner(
     val source: String,
-    val errorFunc: (Int, String) -> Unit,
+    val errorReporter: (Int, String) -> Unit,
 ) {
     var tokens: MutableList<Token> = mutableListOf()
     var start: Int = 0
@@ -85,7 +85,7 @@ data class Scanner(
         }
 
         if (isAtEnd()) {
-            errorFunc(line, "unterminated string")
+            errorReporter(line, "unterminated string")
             return
         }
 
@@ -109,7 +109,7 @@ data class Scanner(
             }
         }
 
-        val value = source.substring(start, current).toDoubleOrNull() ?: errorFunc(line, "Couldn't parse double")
+        val value = source.substring(start, current).toDoubleOrNull() ?: errorReporter(line, "Couldn't parse double")
         addToken(TokenType.NUMBER, value)
     }
 
@@ -182,7 +182,7 @@ data class Scanner(
                 } else if (isAlpha(c)) {
                     identifier()
                 } else {
-                    errorFunc(line, "unexpected character '$c'")
+                    errorReporter(line, "unexpected character '$c'")
                 }
             }
         }
