@@ -202,11 +202,12 @@ class Lox {
             { line: Int, msg: String -> error(line, msg) }
         )
         val tokens: List<Token> = scanner.scanTokens()
+        val parser = Parser(tokens, { token, message -> error(token, message) })
+        val expression = parser.parse() ?: error("Couldn't parse expression")
 
-        // Just print the tokens for now
-        for (token in tokens) {
-            println(token)
-        }
+        if (hadError) return
+
+        println(AstPrinter().printExpr(expression))
     }
 
     fun error(line: Int, message: String) {
