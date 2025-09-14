@@ -194,7 +194,10 @@ data class Scanner(
 }
 
 class Lox {
+    private val interpreter = Interpreter({ error -> runtimeError(error) })
+
     var hadError = false
+    var hadRuntimeError = false
 
     fun run(source: String) {
         val scanner = Scanner(
@@ -207,7 +210,8 @@ class Lox {
 
         if (hadError) return
 
-        println(AstPrinter().printExpr(expression))
+//        println(AstPrinter().printExpr(expression))
+        interpreter.interpret(expression)
     }
 
     fun error(line: Int, message: String) {
@@ -220,6 +224,11 @@ class Lox {
             TokenType.EOF -> report(token.line, " at end", message)
             else -> report(token.line, " at '${token.lexeme}'", message)
         }
+    }
+
+    fun runtimeError(error: RuntimeError) {
+        println(error.message + "\n[line ${error.token.line}]")
+        hadRuntimeError = true
     }
 
     fun report(line: Int, where: String, message: String) {
