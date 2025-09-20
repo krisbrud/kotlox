@@ -1,6 +1,13 @@
 sealed interface Expr {
     fun <R> accept(visitor: Visitor<R>): R
 
+    data class Assign(
+        val name: Token,
+        val value: Expr,
+    ) : Expr {
+        override fun <R> accept(visitor: Visitor<R>) = visitor.visitAssignExpr(this)
+    }
+
     data class Binary(
         val left: Expr,
         val operator: Token,
@@ -35,6 +42,7 @@ sealed interface Expr {
     }
 
     interface Visitor<R> {
+        fun visitAssignExpr(expr: Assign): R
         fun visitBinaryExpr(expr: Binary): R
         fun visitGroupingExpr(expr: Grouping): R
         fun visitLiteralExpr(expr: Literal): R

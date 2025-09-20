@@ -2,6 +2,7 @@ import java.io.File
 import java.io.PrintWriter
 
 val exprGrammar = """
+Assign      : Token name, Expr value
 Binary      : Expr left, Token operator, Expr right
 Grouping    : Expr expression
 Literal     : Any? value
