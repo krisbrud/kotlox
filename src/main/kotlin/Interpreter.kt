@@ -4,13 +4,18 @@ class RuntimeError(val token: Token, message: String) : RuntimeException(message
 class Interpreter(
     val errorReporter: (RuntimeError) -> Unit
 ) : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
-    fun interpret(expression: Expr) {
+    fun interpret(statements: List<Stmt>) {
         try {
-            val value = evaluate(expression)
-            println(stringify(value))
+            statements.forEach { statement ->
+                execute(statement)
+            }
         } catch (error: RuntimeError) {
             errorReporter(error)
         }
+    }
+
+    private fun execute(stmt: Stmt) {
+        stmt.accept(this)
     }
 
     override fun visitBinaryExpr(expr: Expr.Binary): Any? {
