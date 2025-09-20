@@ -2,7 +2,8 @@ class RuntimeError(val token: Token, message: String) : RuntimeException(message
 
 
 class Interpreter(
-    val errorReporter: (RuntimeError) -> Unit
+    private val environment: Environment = Environment(),
+    private val errorReporter: (RuntimeError) -> Unit,
 ) : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     fun interpret(statements: List<Stmt>) {
         try {
@@ -101,6 +102,10 @@ class Interpreter(
         throw RuntimeError(expr.operator, "Unexpected unary opeartor.")
     }
 
+    override fun visitVariableExpr(expr: Expr.Variable): Any? {
+        return environment.get(expr.name)
+    }
+
     private fun checkNumberOperand(operator: Token, operand: Any?) {
         if (operand is Double) return // :)
         throw RuntimeError(operator, "Operand must be a number")
@@ -142,12 +147,17 @@ class Interpreter(
         return obj.toString()
     }
 
-    override fun visitExpressionExpr(stmt: Stmt.Expression) {
+    override fun visitExpressionStmt(stmt: Stmt.Expression) {
         evaluate(stmt.expression)
     }
 
-    override fun visitPrintExpr(stmt: Stmt.Print) {
+    override fun visitPrintStmt(stmt: Stmt.Print) {
         val value = evaluate(stmt.expression)
         println(stringify(value))
+    }
+
+    override fun visitVarStmt(stmt: Stmt.Var) {
+        val value = evaluate(stmt.initializer) // Note: can be a Lox nil literal, but not Kotlin null
+        environment.define(stmt.name.lexeme, value)
     }
 }
