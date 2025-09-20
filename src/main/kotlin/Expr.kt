@@ -1,5 +1,6 @@
 sealed interface Expr {
     fun <R> accept(visitor: Visitor<R>): R
+
     data class Binary(
         val left: Expr,
         val operator: Token,

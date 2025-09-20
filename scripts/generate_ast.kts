@@ -1,11 +1,16 @@
 import java.io.File
 import java.io.PrintWriter
 
-val grammar = """
+val exprGrammar = """
 Binary      : Expr left, Token operator, Expr right
 Grouping    : Expr expression
 Literal     : Any? value
 Unary       : Token operator, Expr right
+""".trimIndent()
+
+val stmtGrammar = """
+Expression  : Expr expression
+Print       : Expr expression
 """.trimIndent()
 
 val indent = "    "
@@ -68,5 +73,11 @@ fun defineVisitor(writer: PrintWriter, baseName: String, types: List<String>) {
 defineAst(
     outputDir = "src/main/kotlin/",
     baseName = "Expr",
-    types = grammar.lines()
+    types = exprGrammar.lines()
+)
+
+defineAst(
+    outputDir = "src/main/kotlin/",
+    baseName = "Stmt",
+    types = stmtGrammar.lines()
 )
