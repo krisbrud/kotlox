@@ -2,23 +2,43 @@ data class Parser(
     val tokens: List<Token>,
     val errorReporter: (Token, String) -> Unit,
 ) {
-    class ParseError(): RuntimeException()
+    class ParseError() : RuntimeException()
 
     var current: Int = 0
 
     fun parse(): List<Stmt> {
         val statements = mutableListOf<Stmt>()
         while (!isAtEnd()) {
-            statements.add(statement())
+            val decl = declaration()
+            if (decl != null) {
+                statements.add(decl)
+            }
         }
 
         return statements
-//        return try {
-//            expression()
-//        } catch (error: ParseError) {
-//            // TODO Revisit later
-//            null
-//        }
+    }
+
+    private fun declaration(): Stmt? {
+        try {
+            return if (match(TokenType.VAR)) varDeclaration()
+            else statement()
+        } catch (error: ParseError) {
+            synchronize()
+            return null
+        }
+    }
+
+    private fun varDeclaration(): Stmt {
+        val name = consume(TokenType.IDENTIFIER, "Expect variable name.")
+
+        val initializer: Expr = if (match(TokenType.EQUAL)) {
+            expression()
+        } else {
+            Expr.Literal(null)
+        }
+
+        consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")
+        return Stmt.Var(name, initializer)
     }
 
     private fun statement(): Stmt {
@@ -119,6 +139,10 @@ data class Parser(
 
         if (match(TokenType.NUMBER, TokenType.STRING)) {
             return Expr.Literal(previous().literal)
+        }
+
+        if (match(TokenType.IDENTIFIER)) {
+            return Expr.Variable(previous())
         }
 
         if (match(TokenType.LEFT_PAREN)) {
