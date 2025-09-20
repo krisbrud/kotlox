@@ -56,7 +56,7 @@ fun defineType(writer: PrintWriter, baseName: String, className: String, fieldLi
 
     // Add visitor
     //         override fun <R> accept(visitor: Visitor<R>) = visitor.visitGroupingExpr(this)
-    writer.println(indent + indent + "override fun <R> accept(visitor: Visitor<R>) = visitor.visit${className}Expr(this)")
+    writer.println(indent + indent + "override fun <R> accept(visitor: Visitor<R>) = visitor.visit${className}$baseName(this)")
 
     // End class body
     writer.println(indent + "}")

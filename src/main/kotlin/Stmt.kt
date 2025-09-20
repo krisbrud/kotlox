@@ -4,26 +4,26 @@ sealed interface Stmt {
     data class Block(
         val statements: List<Stmt>,
     ) : Stmt {
-        override fun <R> accept(visitor: Visitor<R>) = visitor.visitBlockExpr(this)
+        override fun <R> accept(visitor: Visitor<R>) = visitor.visitBlockStmt(this)
     }
 
     data class Expression(
         val expression: Expr,
     ) : Stmt {
-        override fun <R> accept(visitor: Visitor<R>) = visitor.visitExpressionExpr(this)
+        override fun <R> accept(visitor: Visitor<R>) = visitor.visitExpressionStmt(this)
     }
 
     data class Print(
         val expression: Expr,
     ) : Stmt {
-        override fun <R> accept(visitor: Visitor<R>) = visitor.visitPrintExpr(this)
+        override fun <R> accept(visitor: Visitor<R>) = visitor.visitPrintStmt(this)
     }
 
     data class Var(
         val name: Token,
         val initializer: Expr,
     ) : Stmt {
-        override fun <R> accept(visitor: Visitor<R>) = visitor.visitVarExpr(this)
+        override fun <R> accept(visitor: Visitor<R>) = visitor.visitVarStmt(this)
     }
 
     interface Visitor<R> {

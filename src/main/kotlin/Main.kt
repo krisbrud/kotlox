@@ -194,7 +194,7 @@ data class Scanner(
 }
 
 class Lox {
-    private val interpreter = Interpreter({ error -> runtimeError(error) })
+    private val interpreter = Interpreter(errorReporter = { error -> runtimeError(error) })
 
     var hadError = false
     var hadRuntimeError = false
@@ -275,7 +275,7 @@ fun smokeTestAstPrinter() {
         Token(TokenType.STAR, "*", null, 1),
         Expr.Grouping(Expr.Literal(45.67))
     )
-    println(AstPrinter().printExpr(expression))
+//    println(AstPrinter().printExpr(expression))
 }
 
 fun main(args: Array<String>) {

@@ -2,7 +2,7 @@ class RuntimeError(val token: Token, message: String) : RuntimeException(message
 
 
 class Interpreter(
-    private val environment: Environment = Environment(),
+    private var environment: Environment = Environment(),
     private val errorReporter: (RuntimeError) -> Unit,
 ) : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     fun interpret(statements: List<Stmt>) {
@@ -151,6 +151,21 @@ class Interpreter(
         }
 
         return obj.toString()
+    }
+
+    override fun visitBlockStmt(stmt: Stmt.Block) {
+        executeBlock(stmt.statements, Environment(enclosing=environment))
+    }
+
+    fun executeBlock(statements: List<Stmt>, blockEnvironment: Environment) {
+        // Note: We could possibly get around the environment juggling if we used some kind of context manager
+        val previous = this.environment
+        try {
+            environment = blockEnvironment
+            statements.forEach { execute(it) }
+        } finally {
+            environment = previous
+        }
     }
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {

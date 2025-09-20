@@ -43,7 +43,21 @@ data class Parser(
 
     private fun statement(): Stmt {
         return if (match(TokenType.PRINT)) printStatement()
+        else if (match(TokenType.LEFT_BRACE)) Stmt.Block(block())
         else expressionStatement()
+    }
+
+    private fun block(): List<Stmt> {
+        val statements = mutableListOf<Stmt>()
+
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            declaration()?.also{
+                statements.add(it)
+            }
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
+        return statements
     }
 
     private fun printStatement(): Stmt {
