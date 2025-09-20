@@ -3,7 +3,7 @@ class RuntimeError(val token: Token, message: String) : RuntimeException(message
 
 class Interpreter(
     val errorReporter: (RuntimeError) -> Unit
-) : Expr.Visitor<Any?> {
+) : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
     fun interpret(expression: Expr) {
         try {
             val value = evaluate(expression)
@@ -135,5 +135,14 @@ class Interpreter(
         }
 
         return obj.toString()
+    }
+
+    override fun visitExpressionExpr(stmt: Stmt.Expression) {
+        evaluate(stmt.expression)
+    }
+
+    override fun visitPrintExpr(stmt: Stmt.Print) {
+        val value = evaluate(stmt.expression)
+        println(stringify(value))
     }
 }

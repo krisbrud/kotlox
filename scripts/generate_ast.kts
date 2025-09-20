@@ -64,7 +64,7 @@ fun defineVisitor(writer: PrintWriter, baseName: String, types: List<String>) {
 
     types.forEach { type ->
         val typeName = type.split(":")[0].trim()
-        writer.println(indent + indent +  "fun visit${typeName}Expr(expr: $typeName): R")
+        writer.println(indent + indent +  "fun visit${typeName}Expr(${baseName.lowercase()}: $typeName): R")
 
     }
     writer.println("    } ")

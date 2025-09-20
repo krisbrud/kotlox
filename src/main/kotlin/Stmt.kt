@@ -14,7 +14,7 @@ sealed interface Stmt {
     }
 
     interface Visitor<R> {
-        fun visitExpressionExpr(expr: Expression): R
-        fun visitPrintExpr(expr: Print): R
+        fun visitExpressionExpr(stmt: Expression): R
+        fun visitPrintExpr(stmt: Print): R
     } 
 }
