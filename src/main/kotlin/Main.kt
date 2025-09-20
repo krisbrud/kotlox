@@ -227,12 +227,12 @@ class Lox {
     }
 
     fun runtimeError(error: RuntimeError) {
-        println(error.message + "\n[line ${error.token.line}]")
+        System.err.println(error.message + "\n[line ${error.token.line}]")
         hadRuntimeError = true
     }
 
     fun report(line: Int, where: String, message: String) {
-        println("[line $line] Error $where : $message")
+        System.err.println("[line $line] Error $where : $message")
     }
 
     fun runFile(path: String) {
