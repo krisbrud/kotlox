@@ -10,4 +10,12 @@ class Environment(
     fun define(name: String, value: Any?) {
         values[name] = value
     }
+
+    fun assign(name: Token, value: Any?) {
+        if (values.containsKey(name.lexeme)) {
+            values[name.lexeme] = value
+        } else {
+            throw RuntimeError(name, "Undefined variable '${name.lexeme}'.")
+        }
+    }
 }

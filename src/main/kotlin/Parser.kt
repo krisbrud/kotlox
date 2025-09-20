@@ -58,7 +58,25 @@ data class Parser(
         return Stmt.Expression(value)
     }
 
-    fun expression(): Expr = equality()
+    fun expression(): Expr = assignment()
+
+    fun assignment(): Expr {
+        val expr = equality()
+
+        if (match(TokenType.EQUAL)) {
+            val equals = previous()
+            val value = assignment()
+
+            if (expr is Expr.Variable) {
+                val name = expr.name
+                return Expr.Assign(name, value)
+            }
+
+            error(equals, "Invalid assignment target.")
+        }
+
+        return expr
+    }
 
     fun equality(): Expr {
         var expr = comparison()
