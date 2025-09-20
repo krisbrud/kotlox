@@ -279,10 +279,6 @@ fun smokeTestAstPrinter() {
 }
 
 fun main(args: Array<String>) {
-
-    // TODO Remove
-    smokeTestAstPrinter()
-
     val lox = Lox()
 
     lox.main(args)
