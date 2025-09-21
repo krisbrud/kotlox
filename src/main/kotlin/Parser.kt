@@ -42,11 +42,53 @@ data class Parser(
     }
 
     private fun statement(): Stmt {
-        return if (match(TokenType.IF)) ifStatement()
+        return if (match(TokenType.FOR)) forStatement()
+        else if (match(TokenType.IF)) ifStatement()
         else if (match(TokenType.PRINT)) printStatement()
         else if (match(TokenType.WHILE)) whileStatement()
         else if (match(TokenType.LEFT_BRACE)) Stmt.Block(block())
         else expressionStatement()
+    }
+
+    private fun forStatement(): Stmt {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.")
+
+        val initializer: Stmt? = if (match(TokenType.SEMICOLON)) {
+            null
+        } else if (match(TokenType.VAR)) {
+            varDeclaration()
+        } else {
+            expressionStatement()
+        }
+
+        var condition: Expr? = if (!check(TokenType.SEMICOLON)) {
+            expression()
+        } else null
+        consume(TokenType.SEMICOLON, "Expect ';' after loop condition.")
+
+        val increment: Expr? = if (!check(TokenType.RIGHT_PAREN)) {
+            expression()
+        } else null
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.")
+
+        var body = statement()
+
+        if (increment != null) {
+            body = Stmt.Block(
+                listOf(body, Stmt.Expression(increment))
+            )
+        }
+
+        if (condition == null) {
+            condition = Expr.Literal(true)
+        }
+        body = Stmt.While(condition, body)
+
+        if (initializer != null) {
+            body = Stmt.Block(listOf(initializer, body))
+        }
+
+        return body
     }
 
     private fun whileStatement(): Stmt {
@@ -75,7 +117,7 @@ data class Parser(
         val statements = mutableListOf<Stmt>()
 
         while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
-            declaration()?.also{
+            declaration()?.also {
                 statements.add(it)
             }
         }
