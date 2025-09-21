@@ -53,6 +53,7 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         for (i in (scopes.size - 1) downTo 0) {
             if (scopes[i].containsKey(name.lexeme)) {
                 interpreter.resolve(expr, scopes.size - 1 - i)
+                return
             }
         }
     }
@@ -107,7 +108,7 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
     }
 
     override fun visitVariableExpr(expr: Expr.Variable) {
-        if (!scopes.isEmpty() && scopes.peek()[expr.name.lexeme] == false) {
+        if (!scopes.isEmpty() && (scopes.peek()[expr.name.lexeme] == false)) {
             errorReporter(expr.name, "Can't read local variable in its own initializer.")
         }
 
@@ -161,6 +162,4 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         resolve(stmt.condition)
         resolve(stmt.body)
     }
-
-
 }

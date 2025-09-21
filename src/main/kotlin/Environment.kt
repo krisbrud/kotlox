@@ -2,6 +2,7 @@ class Environment(
     val enclosing: Environment? = null,
 ) {
     private val values: MutableMap<String, Any?> = mutableMapOf()
+//    val values: MutableMap<String, Any?> = mutableMapOf()
     fun get(name: Token): Any? {
         return values.getOrElse(name.lexeme) {
             if (enclosing != null) return enclosing.get(name)
