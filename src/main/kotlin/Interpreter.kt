@@ -93,6 +93,20 @@ class Interpreter(
         return null
     }
 
+    override fun visitCallExpr(expr: Expr.Call): Any? {
+        val callee = evaluate(expr.callee)
+
+        val arguments: MutableList<Any?> = mutableListOf()
+        expr.arguments.forEach {
+            arguments.add(evaluate(it))
+        }
+
+        if (callee !is LoxCallable) {
+            throw RuntimeError(expr.paren, "Can only call functions and classes.")
+        }
+        return callee.call(this, arguments)
+    }
+
     override fun visitGroupingExpr(expr: Expr.Grouping): Any? {
         return evaluate(expr.expression)
     }
