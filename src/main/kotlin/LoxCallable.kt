@@ -1,4 +1,5 @@
 
 interface LoxCallable {
-    fun call(interpreter: Interpreter, arguments: List<Any?>)
+    val arity: Int
+    fun call(interpreter: Interpreter, arguments: List<Any?>): Any?
 }

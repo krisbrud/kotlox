@@ -2,9 +2,26 @@ class RuntimeError(val token: Token, message: String) : RuntimeException(message
 
 
 class Interpreter(
-    private var environment: Environment = Environment(),
+    var environment: Environment = Environment(),
+    private var globals: Environment = environment,
     private val errorReporter: (RuntimeError) -> Unit,
 ) : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
+
+    init {
+        globals.define("clock", object : LoxCallable {
+            override val arity: Int
+                get() = 0
+
+            override fun call(interpreter: Interpreter, arguments: List<Any?>): Double {
+                return System.currentTimeMillis().toDouble() / 1000.0
+            }
+
+            override fun toString(): String {
+                return "<native fn>"
+            }
+        })
+    }
+
     fun interpret(statements: List<Stmt>) {
         try {
             statements.forEach { statement ->
@@ -103,6 +120,9 @@ class Interpreter(
 
         if (callee !is LoxCallable) {
             throw RuntimeError(expr.paren, "Can only call functions and classes.")
+        }
+        if (arguments.size != callee.arity) {
+            throw RuntimeError(expr.paren, "Expected ${callee.arity} arguments but got ${arguments.size}.")
         }
         return callee.call(this, arguments)
     }
