@@ -210,6 +210,13 @@ class Lox {
 
         if (hadError) return
 
+        val resolver = Resolver(interpreter, errorReporter = { token, message ->
+            error(token, message)
+        })
+        resolver.resolve(statements)
+
+        if (hadError) return
+
         interpreter.interpret(statements)
     }
 

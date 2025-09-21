@@ -2,10 +2,11 @@ class RuntimeError(val token: Token, message: String) : RuntimeException(message
 
 
 class Interpreter(
-    var environment: Environment = Environment(),
-    val globals: Environment = environment, // TODO consider if this should be hidden
+    val globals: Environment = Environment(), // TODO consider if this should be hidden
+    var environment: Environment = globals,
     private val errorReporter: (RuntimeError) -> Unit,
 ) : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
+    val locals: MutableMap<Expr, Int> = mutableMapOf()
 
     init {
         globals.define("clock", object : LoxCallable {
@@ -36,9 +37,20 @@ class Interpreter(
         stmt.accept(this)
     }
 
+    fun resolve(expr: Expr, depth: Int) {
+        locals[expr] = depth
+    }
+
     override fun visitAssignExpr(expr: Expr.Assign): Any? {
         val value = evaluate(expr.value)
-        environment.assign(expr.name, value)
+
+        val distance = locals[expr]
+        if (distance != null) {
+            environment.assignAt(distance, expr.name, value)
+        } else {
+            globals.assign(expr.name, value)
+        }
+
         return value
     }
 
@@ -166,7 +178,16 @@ class Interpreter(
     }
 
     override fun visitVariableExpr(expr: Expr.Variable): Any? {
-        return environment.get(expr.name)
+        return lookupVariable(expr.name, expr)
+    }
+
+    fun lookupVariable(name: Token, expr: Expr): Any? {
+        val distance = locals[expr]
+        return if (distance != null) {
+            environment.getAt(distance, name.lexeme)
+        } else {
+            globals.get(name)
+        }
     }
 
     private fun checkNumberOperand(operator: Token, operand: Any?) {

@@ -5,6 +5,14 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
     Expr.Visitor<Unit>, Stmt.Visitor<Unit> {
     val scopes: Stack<MutableMap<String, Boolean>> = Stack()
 
+    private enum class FunctionType {
+        NONE,
+        FUNCTION,
+        ;
+    }
+
+    private var currentFunction: FunctionType = FunctionType.NONE
+
     fun resolve(statements: List<Stmt>) {
         statements.forEach { resolve(it) }
     }
@@ -29,6 +37,10 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         if (scopes.isEmpty()) return // Global scope?
 
         val scope = scopes.peek()
+        if (scope.containsKey(name.lexeme)) {
+            errorReporter(name, "Already a variable with this name in this scope.")
+        }
+
         scope[name.lexeme] = false
     }
 
@@ -45,7 +57,10 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         }
     }
 
-    fun resolveFunction(function: Stmt.Function) {
+    private fun resolveFunction(function: Stmt.Function, type: FunctionType) {
+        val enclosingFunction = currentFunction
+        currentFunction = type
+
         beginScope()
         function.params.forEach { param ->
             declare(param)
@@ -53,6 +68,8 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         }
         resolve(function.body)
         endScope()
+
+        currentFunction = enclosingFunction
     }
 
     override fun visitAssignExpr(expr: Expr.Assign) {
@@ -82,6 +99,7 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
 
     override fun visitLogicalExpr(expr: Expr.Logical) {
         resolve(expr.left)
+        resolve(expr.right)
     }
 
     override fun visitUnaryExpr(expr: Expr.Unary) {
@@ -110,7 +128,7 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         declare(stmt.name)
         define(stmt.name)
 
-        resolveFunction(stmt)
+        resolveFunction(stmt, FunctionType.FUNCTION)
     }
 
     override fun visitIfStmt(stmt: Stmt.If) {
@@ -124,6 +142,10 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
     }
 
     override fun visitReturnStmt(stmt: Stmt.Return) {
+        if (currentFunction == FunctionType.NONE) {
+            errorReporter(stmt.keyword, "Can't return from top-level code.")
+        }
+
         stmt.value?.also { resolve(it) }
     }
 
