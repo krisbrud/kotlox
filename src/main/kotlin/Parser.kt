@@ -20,13 +20,15 @@ data class Parser(
 
     private fun declaration(): Stmt? {
         try {
-            return if (match(TokenType.VAR)) varDeclaration()
+            return if (match(TokenType.FUN)) function("function")
+            else if (match(TokenType.VAR)) varDeclaration()
             else statement()
         } catch (error: ParseError) {
             synchronize()
             return null
         }
     }
+
 
     private fun varDeclaration(): Stmt {
         val name = consume(TokenType.IDENTIFIER, "Expect variable name.")
@@ -136,6 +138,26 @@ data class Parser(
         val value = expression()
         consume(TokenType.SEMICOLON, "Expect ';' after expression.")
         return Stmt.Expression(value)
+    }
+
+    private fun function(kind: String): Stmt.Function {
+        val name = consume(TokenType.IDENTIFIER, "Expect $kind name.")
+        consume(TokenType.LEFT_PAREN, "Expect '(' after $kind name.")
+        val parameters: MutableList<Token> = mutableListOf()
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (parameters.size >= 255) {
+                    error(peek(), "Can't have more than 255 parameters.")
+                }
+
+                parameters.add(consume(TokenType.IDENTIFIER, "Expect parameter name."))
+            } while (match(TokenType.COMMA))
+        }
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.")
+
+        consume(TokenType.LEFT_BRACE, "Expect '{' before $kind body.")
+        val body = block()
+        return Stmt.Function(name, parameters, body)
     }
 
     fun expression(): Expr = assignment()

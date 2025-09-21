@@ -3,7 +3,7 @@ class RuntimeError(val token: Token, message: String) : RuntimeException(message
 
 class Interpreter(
     var environment: Environment = Environment(),
-    private var globals: Environment = environment,
+    val globals: Environment = environment, // TODO consider if this should be hidden
     private val errorReporter: (RuntimeError) -> Unit,
 ) : Expr.Visitor<Any?>, Stmt.Visitor<Unit> {
 
@@ -227,6 +227,11 @@ class Interpreter(
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {
         evaluate(stmt.expression)
+    }
+
+    override fun visitFunctionStmt(stmt: Stmt.Function) {
+        val function = LoxFunction(stmt)
+        environment.define(stmt.name.lexeme, function)
     }
 
     override fun visitLogicalExpr(expr: Expr.Logical): Any? {
