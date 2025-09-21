@@ -34,38 +34,47 @@ class Interpreter(
                 checkNumberOperands(expr.operator, left, right);
                 return (left as Double) > (right as Double)
             }
+
             TokenType.GREATER_EQUAL -> {
                 checkNumberOperands(expr.operator, left, right);
                 return (left as Double) >= (right as Double)
             }
+
             TokenType.LESS -> {
                 checkNumberOperands(expr.operator, left, right);
                 return (left as Double) < (right as Double)
             }
+
             TokenType.LESS_EQUAL -> {
                 checkNumberOperands(expr.operator, left, right);
                 return (left as Double) <= (right as Double)
             }
+
             TokenType.BANG_EQUAL -> {
                 checkNumberOperands(expr.operator, left, right);
                 return !isEqual(left, right)
             }
+
             TokenType.EQUAL_EQUAL -> {
                 checkNumberOperands(expr.operator, left, right);
                 return isEqual(left, right)
             }
+
             TokenType.MINUS -> {
                 checkNumberOperands(expr.operator, left, right);
                 return (left as Double) - (right as Double)
             }
+
             TokenType.SLASH -> {
                 checkNumberOperands(expr.operator, left, right);
                 return (left as Double) / (right as Double)
             }
+
             TokenType.STAR -> {
                 checkNumberOperands(expr.operator, left, right);
                 return (left as Double) * (right as Double)
             }
+
             TokenType.PLUS -> {
                 if ((left is Double) && (right is Double)) {
                     return left + right
@@ -154,7 +163,7 @@ class Interpreter(
     }
 
     override fun visitBlockStmt(stmt: Stmt.Block) {
-        executeBlock(stmt.statements, Environment(enclosing=environment))
+        executeBlock(stmt.statements, Environment(enclosing = environment))
     }
 
     fun executeBlock(statements: List<Stmt>, blockEnvironment: Environment) {
@@ -172,13 +181,25 @@ class Interpreter(
         evaluate(stmt.expression)
     }
 
-    override fun visitPrintStmt(stmt: Stmt.Print) {
-        val value = evaluate(stmt.expression)
-        println(stringify(value))
-    }
+    override fun visitLogicalExpr(expr: Expr.Logical): Any? {
+        val left = evaluate(expr.left)
 
-    override fun visitVarStmt(stmt: Stmt.Var) {
-        val value = evaluate(stmt.initializer) // Note: can be a Lox nil literal, but not Kotlin null
-        environment.define(stmt.name.lexeme, value)
-    }
+        if (expr.operator.type == TokenType.OR) {
+            if (isTruthy(left)) return left
+        } else {
+            if (!isTruthy(left)) return left
+        }
+
+    return evaluate(expr.right)
+}
+
+override fun visitPrintStmt(stmt: Stmt.Print) {
+    val value = evaluate(stmt.expression)
+    println(stringify(value))
+}
+
+override fun visitVarStmt(stmt: Stmt.Var) {
+    val value = evaluate(stmt.initializer) // Note: can be a Lox nil literal, but not Kotlin null
+    environment.define(stmt.name.lexeme, value)
+}
 }
