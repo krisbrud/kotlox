@@ -47,6 +47,7 @@ data class Parser(
         return if (match(TokenType.FOR)) forStatement()
         else if (match(TokenType.IF)) ifStatement()
         else if (match(TokenType.PRINT)) printStatement()
+        else if (match(TokenType.RETURN)) returnStatement()
         else if (match(TokenType.WHILE)) whileStatement()
         else if (match(TokenType.LEFT_BRACE)) Stmt.Block(block())
         else expressionStatement()
@@ -132,6 +133,16 @@ data class Parser(
         val value = expression()
         consume(TokenType.SEMICOLON, "Expect ';' after value.")
         return Stmt.Print(value)
+    }
+
+    private fun returnStatement(): Stmt {
+        val keyword = previous()
+        val value = if (!check(TokenType.SEMICOLON)) {
+            expression()
+        } else null
+
+        consume(TokenType.SEMICOLON, "Expect ';' after return value.")
+        return Stmt.Return(keyword, value)
     }
 
     private fun expressionStatement(): Stmt {

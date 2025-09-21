@@ -144,7 +144,7 @@ class Interpreter(
     }
 
     override fun visitWhileStmt(stmt: Stmt.While) {
-        while(isTruthy(evaluate(stmt.condition))) {
+        while (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.body)
         }
     }
@@ -243,16 +243,22 @@ class Interpreter(
             if (!isTruthy(left)) return left
         }
 
-    return evaluate(expr.right)
-}
+        return evaluate(expr.right)
+    }
 
-override fun visitPrintStmt(stmt: Stmt.Print) {
-    val value = evaluate(stmt.expression)
-    println(stringify(value))
-}
+    override fun visitPrintStmt(stmt: Stmt.Print) {
+        val value = evaluate(stmt.expression)
+        println(stringify(value))
+    }
 
-override fun visitVarStmt(stmt: Stmt.Var) {
-    val value = evaluate(stmt.initializer) // Note: can be a Lox nil literal, but not Kotlin null
-    environment.define(stmt.name.lexeme, value)
-}
+    override fun visitReturnStmt(stmt: Stmt.Return) {
+        val value = if (stmt.value != null) evaluate(stmt.value) else null
+
+        throw Return(value)
+    }
+
+    override fun visitVarStmt(stmt: Stmt.Var) {
+        val value = evaluate(stmt.initializer) // Note: can be a Lox nil literal, but not Kotlin null
+        environment.define(stmt.name.lexeme, value)
+    }
 }
