@@ -16,7 +16,7 @@ sealed interface Stmt {
     data class If(
         val condition: Expr,
         val thenBranch: Stmt,
-        val elseBranch: Stmt,
+        val elseBranch: Stmt?,
     ) : Stmt {
         override fun <R> accept(visitor: Visitor<R>) = visitor.visitIfStmt(this)
     }
