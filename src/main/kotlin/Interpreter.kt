@@ -255,6 +255,11 @@ class Interpreter(
 
         environment.define(stmt.name.lexeme, null)
 
+        stmt.superclass?.also {
+            environment = Environment(environment)
+            environment.define("super", superclass)
+        }
+
         val methods = mutableMapOf<String, LoxFunction>()
         stmt.methods.forEach { method ->
             val function = LoxFunction(method, environment, method.name.lexeme == "init")
@@ -262,6 +267,10 @@ class Interpreter(
         }
 
         val klass = LoxClass(stmt.name.lexeme, superclass, methods)
+        if (superclass != null) {
+            environment = environment.enclosing ?: throw RuntimeError(stmt.name,"Expected environment to have enclosing environment.")
+        }
+
         environment.assign(stmt.name, klass)
     }
 
@@ -308,6 +317,19 @@ class Interpreter(
         obj.set(expr.name, value)
 
         return value
+    }
+
+    override fun visitSuperExpr(expr: Expr.Super): Any? {
+        val distance = locals[expr] ?: throw RuntimeError(expr.keyword, "Invalid use of super keyword.")
+
+        val superclass = environment.getAt(distance, "super") as LoxClass
+        val obj = environment.getAt(distance - 1, "this") as LoxInstance
+
+        val method = superclass.findMethod(expr.method.lexeme) ?: throw RuntimeError(
+            expr.method,
+            "Undefined property ${expr.method.lexeme}."
+        )
+        return method.bind(obj)
     }
 
     override fun visitThisExpr(expr: Expr.This): Any? {

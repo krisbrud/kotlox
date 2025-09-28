@@ -16,6 +16,7 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
     private enum class ClassType {
         NONE,
         CLASS,
+        SUBCLASS,
         ;
     }
 
@@ -121,6 +122,16 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         resolve(expr.obj)
     }
 
+    override fun visitSuperExpr(expr: Expr.Super) {
+        if (currentClass == ClassType.NONE) {
+            errorReporter(expr.keyword, "Can't use 'super' outside of a class.")
+        } else if (currentClass != ClassType.SUBCLASS) {
+            errorReporter(expr.keyword, "Can't use 'super' in a class with no superclass.")
+        }
+
+        resolveLocal(expr, expr.keyword)
+    }
+
     override fun visitThisExpr(expr: Expr.This) {
         if (currentClass == ClassType.NONE) {
             errorReporter(expr.keyword, "Can't use 'this' outside of a class.")
@@ -158,7 +169,15 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
             errorReporter(stmt.superclass.name, "A class can't inherit from itself.")
         }
 
-        stmt.superclass?.also { resolve(it) }
+        stmt.superclass?.also {
+            currentClass = ClassType.SUBCLASS
+            resolve(it)
+        }
+
+        if (stmt.superclass != null) {
+            beginScope()
+            scopes.peek()["super"] = true
+        }
 
         beginScope()
         scopes.peek()["this"] = true
@@ -171,6 +190,9 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         }
 
         endScope()
+
+        if (stmt.superclass != null) endScope()
+
         currentClass = enclosingClass
     }
 
