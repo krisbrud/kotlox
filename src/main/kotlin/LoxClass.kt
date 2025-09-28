@@ -12,9 +12,17 @@ class LoxClass(
 
     override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
         val instance = LoxInstance(this)
+        val initializer = findMethod("init")
+
+        // Call initializer if defined, otherwise just let the instance be a open collection of fields (properties?)
+        initializer?.bind(instance)?.call(interpreter, arguments)
+
         return instance
     }
 
     override val arity: Int
-        get() = 0
+        get() {
+            val initializer = findMethod("init")
+            return initializer?.arity ?: 0
+        }
 }

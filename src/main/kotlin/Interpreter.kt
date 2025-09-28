@@ -249,8 +249,8 @@ class Interpreter(
 
         val methods = mutableMapOf<String, LoxFunction>()
         stmt.methods.forEach { method ->
-            val function = LoxFunction(method, environment)
-            methods.put(method.name.lexeme, function)
+            val function = LoxFunction(method, environment, method.name.lexeme == "init")
+            methods[method.name.lexeme] = function
         }
 
         val klass = LoxClass(stmt.name.lexeme, methods)
@@ -273,7 +273,7 @@ class Interpreter(
     }
 
     override fun visitFunctionStmt(stmt: Stmt.Function) {
-        val function = LoxFunction(stmt, environment)
+        val function = LoxFunction(stmt, environment, false)
         environment.define(stmt.name.lexeme, function)
     }
 

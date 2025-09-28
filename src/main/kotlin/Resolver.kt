@@ -9,6 +9,7 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         NONE,
         FUNCTION,
         METHOD,
+        INITIALIZER,
         ;
     }
 
@@ -157,7 +158,9 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         scopes.peek()["this"] = true
 
         stmt.methods.forEach { method ->
-            val declaration = FunctionType.METHOD
+            val declaration = if (method.name.lexeme == "init") {
+                FunctionType.INITIALIZER
+            } else FunctionType.METHOD
             resolveFunction(method, declaration)
         }
 
@@ -191,7 +194,13 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
             errorReporter(stmt.keyword, "Can't return from top-level code.")
         }
 
-        stmt.value?.also { resolve(it) }
+        stmt.value?.also {
+            if (currentFunction == FunctionType.INITIALIZER) {
+                errorReporter(stmt.keyword, "Can't return a value from an initializer.")
+                // TODO: Should this be a runtime error?
+            }
+            resolve(it)
+        }
     }
 
     override fun visitVarStmt(stmt: Stmt.Var) {
