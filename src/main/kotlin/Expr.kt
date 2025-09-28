@@ -51,6 +51,14 @@ sealed interface Expr {
         override fun <R> accept(visitor: Visitor<R>) = visitor.visitLogicalExpr(this)
     }
 
+    data class Set(
+        val obj: Expr,
+        val name: Token,
+        val value: Expr,
+    ) : Expr {
+        override fun <R> accept(visitor: Visitor<R>) = visitor.visitSetExpr(this)
+    }
+
     data class Unary(
         val operator: Token,
         val right: Expr,
@@ -72,6 +80,7 @@ sealed interface Expr {
         fun visitGroupingExpr(expr: Grouping): R
         fun visitLiteralExpr(expr: Literal): R
         fun visitLogicalExpr(expr: Logical): R
+        fun visitSetExpr(expr: Set): R
         fun visitUnaryExpr(expr: Unary): R
         fun visitVariableExpr(expr: Variable): R
     } 
