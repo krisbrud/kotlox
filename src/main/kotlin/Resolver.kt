@@ -12,7 +12,14 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         ;
     }
 
+    private enum class ClassType {
+        NONE,
+        CLASS,
+        ;
+    }
+
     private var currentFunction: FunctionType = FunctionType.NONE
+    private var currentClass: ClassType = ClassType.NONE
 
     fun resolve(statements: List<Stmt>) {
         statements.forEach { resolve(it) }
@@ -113,6 +120,14 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         resolve(expr.obj)
     }
 
+    override fun visitThisExpr(expr: Expr.This) {
+        if (currentClass == ClassType.NONE) {
+            errorReporter(expr.keyword, "Can't use 'this' outside of a class.")
+            return
+        }
+        resolveLocal(expr, expr.keyword)
+    }
+
     override fun visitUnaryExpr(expr: Expr.Unary) {
         resolve(expr.right)
     }
@@ -132,13 +147,22 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
     }
 
     override fun visitClassStmt(stmt: Stmt.Class) {
+        val enclosingClass = currentClass
+        currentClass = ClassType.CLASS
+
         declare(stmt.name)
         define(stmt.name)
+
+        beginScope()
+        scopes.peek()["this"] = true
 
         stmt.methods.forEach { method ->
             val declaration = FunctionType.METHOD
             resolveFunction(method, declaration)
         }
+
+        endScope()
+        currentClass = enclosingClass
     }
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {

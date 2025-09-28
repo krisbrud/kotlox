@@ -302,6 +302,10 @@ class Interpreter(
         return value
     }
 
+    override fun visitThisExpr(expr: Expr.This): Any? {
+        return lookupVariable(expr.keyword, expr)
+    }
+
     override fun visitPrintStmt(stmt: Stmt.Print) {
         val value = evaluate(stmt.expression)
         println(stringify(value))
