@@ -1,0 +1,5 @@
+#!/bin/bash
+# Script to run kotlox.
+# Requires java to be installed and the fatjar to be built using `./gradlew build fatJar` first.
+
+java -jar build/libs/kotlox-1.0-SNAPSHOT-all.jar $1
