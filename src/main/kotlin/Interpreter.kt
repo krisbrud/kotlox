@@ -246,7 +246,14 @@ class Interpreter(
 
     override fun visitClassStmt(stmt: Stmt.Class) {
         environment.define(stmt.name.lexeme, null)
-        val klass = LoxClass(stmt.name.lexeme)
+
+        val methods = mutableMapOf<String, LoxFunction>()
+        stmt.methods.forEach { method ->
+            val function = LoxFunction(method, environment)
+            methods.put(method.name.lexeme, function)
+        }
+
+        val klass = LoxClass(stmt.name.lexeme, methods)
         environment.assign(stmt.name, klass)
     }
 
@@ -280,6 +287,19 @@ class Interpreter(
         }
 
         return evaluate(expr.right)
+    }
+
+    override fun visitSetExpr(expr: Expr.Set): Any? {
+        val obj = evaluate(expr.obj)
+
+        if (obj !is LoxInstance) {
+            throw RuntimeError(expr.name, "Only instances have fields.")
+        }
+
+        val value = evaluate(expr.value)
+        obj.set(expr.name, value)
+
+        return value
     }
 
     override fun visitPrintStmt(stmt: Stmt.Print) {

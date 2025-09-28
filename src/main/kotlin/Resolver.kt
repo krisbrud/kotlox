@@ -8,6 +8,7 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
     private enum class FunctionType {
         NONE,
         FUNCTION,
+        METHOD,
         ;
     }
 
@@ -89,6 +90,10 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         expr.arguments.forEach { arg -> resolve(arg) }
     }
 
+    override fun visitGetExpr(expr: Expr.Get) {
+        resolve(expr.obj)
+    }
+
     override fun visitGroupingExpr(expr: Expr.Grouping) {
         resolve(expr.expression)
     }
@@ -101,6 +106,11 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
     override fun visitLogicalExpr(expr: Expr.Logical) {
         resolve(expr.left)
         resolve(expr.right)
+    }
+
+    override fun visitSetExpr(expr: Expr.Set) {
+        resolve(expr.value)
+        resolve(expr.obj)
     }
 
     override fun visitUnaryExpr(expr: Expr.Unary) {
@@ -124,6 +134,11 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
     override fun visitClassStmt(stmt: Stmt.Class) {
         declare(stmt.name)
         define(stmt.name)
+
+        stmt.methods.forEach { method ->
+            val declaration = FunctionType.METHOD
+            resolveFunction(method, declaration)
+        }
     }
 
     override fun visitExpressionStmt(stmt: Stmt.Expression) {
