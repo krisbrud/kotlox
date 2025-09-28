@@ -121,6 +121,11 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         endScope()
     }
 
+    override fun visitClassStmt(stmt: Stmt.Class) {
+        declare(stmt.name)
+        define(stmt.name)
+    }
+
     override fun visitExpressionStmt(stmt: Stmt.Expression) {
         resolve(stmt.expression)
     }

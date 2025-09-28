@@ -20,7 +20,8 @@ data class Parser(
 
     private fun declaration(): Stmt? {
         try {
-            return if (match(TokenType.FUN)) function("function")
+            return if (match(TokenType.CLASS)) classDeclaration()
+            else if (match(TokenType.FUN)) function("function")
             else if (match(TokenType.VAR)) varDeclaration()
             else statement()
         } catch (error: ParseError) {
@@ -29,6 +30,19 @@ data class Parser(
         }
     }
 
+    private fun classDeclaration(): Stmt {
+        val name = consume(TokenType.IDENTIFIER, "Expect class name.")
+        consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
+
+        val methods = mutableListOf<Stmt.Function>()
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            methods.add(function("method"))
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.")
+
+        return Stmt.Class(name, methods)
+    }
 
     private fun varDeclaration(): Stmt {
         val name = consume(TokenType.IDENTIFIER, "Expect variable name.")

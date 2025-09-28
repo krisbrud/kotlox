@@ -235,6 +235,12 @@ class Interpreter(
         executeBlock(stmt.statements, Environment(enclosing = environment))
     }
 
+    override fun visitClassStmt(stmt: Stmt.Class) {
+        environment.define(stmt.name.lexeme, null)
+        val klass = LoxClass(stmt.name.lexeme)
+        environment.assign(stmt.name, klass)
+    }
+
     fun executeBlock(statements: List<Stmt>, blockEnvironment: Environment) {
         // Note: We could possibly get around the environment juggling if we used some kind of context manager
         val previous = this.environment
