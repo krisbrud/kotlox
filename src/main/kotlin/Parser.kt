@@ -32,6 +32,12 @@ data class Parser(
 
     private fun classDeclaration(): Stmt {
         val name = consume(TokenType.IDENTIFIER, "Expect class name.")
+
+        val superclass = if (match(TokenType.LESS)) {
+            consume(TokenType.IDENTIFIER, "Expect superclass name.")
+            Expr.Variable(previous())
+        } else null
+
         consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
 
         val methods = mutableListOf<Stmt.Function>()
@@ -41,7 +47,7 @@ data class Parser(
 
         consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.")
 
-        return Stmt.Class(name, methods)
+        return Stmt.Class(name, superclass, methods)
     }
 
     private fun varDeclaration(): Stmt {

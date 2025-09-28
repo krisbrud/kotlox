@@ -245,6 +245,14 @@ class Interpreter(
     }
 
     override fun visitClassStmt(stmt: Stmt.Class) {
+        val superclass: LoxClass? = if (stmt.superclass != null) {
+            val candidate = evaluate(stmt.superclass)
+            if (candidate !is LoxClass) {
+                throw RuntimeError(stmt.superclass.name, "Superclass must be a class.")
+            }
+            candidate
+        } else null
+
         environment.define(stmt.name.lexeme, null)
 
         val methods = mutableMapOf<String, LoxFunction>()
@@ -253,7 +261,7 @@ class Interpreter(
             methods[method.name.lexeme] = function
         }
 
-        val klass = LoxClass(stmt.name.lexeme, methods)
+        val klass = LoxClass(stmt.name.lexeme, superclass, methods)
         environment.assign(stmt.name, klass)
     }
 

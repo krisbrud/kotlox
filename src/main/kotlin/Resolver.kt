@@ -154,6 +154,12 @@ class Resolver(private val interpreter: Interpreter, private val errorReporter: 
         declare(stmt.name)
         define(stmt.name)
 
+        if (stmt.superclass != null && (stmt.name.lexeme == stmt.superclass.name.lexeme)) {
+            errorReporter(stmt.superclass.name, "A class can't inherit from itself.")
+        }
+
+        stmt.superclass?.also { resolve(it) }
+
         beginScope()
         scopes.peek()["this"] = true
 
