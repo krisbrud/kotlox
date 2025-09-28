@@ -8,7 +8,7 @@ class LoxClass(
     fun findMethod(name: String): LoxFunction? {
         return if (methods.containsKey(name)) {
             methods[name]
-        } else null
+        } else superclass?.findMethod(name)
     }
 
     override fun call(interpreter: Interpreter, arguments: List<Any?>): Any? {
